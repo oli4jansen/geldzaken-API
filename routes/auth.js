@@ -49,8 +49,9 @@ var auth = {
             } else {
                 console.log('Before verification.');
                 user.verifyPassword(password, function(err, valid) {
-                    console.log('After verification.');
+                    console.log('Before verification.');
                     if (err) {
+                        console.log(err);
                         callback("Wachtwoord kon niet op geldigheid gecontroleerd worden.", false)
                     } else if (!valid) {
                         callback("Wachtwoord ongeldig", false)
