@@ -1,0 +1,24 @@
+doctype transitional
+html
+  head
+    meta(http-equiv = 'Content-Type', content = 'text/html; charset=UTF-8')
+    title Checkout of #{group.name}
+    body
+      h2.h2 Creditors
+      each participant in group.participants
+        if participant.balance > 0
+          h3.h3 #{participant.user.name.first} #{participant.user.name.last}
+          ul
+            each transaction in transactions
+              if transaction.to._id == participant.user._id
+                - var amount = transaction.amount / 100
+                li &euro; #{amount} from #{transaction.from.name.first} #{transaction.from.name.last}
+      h2.h2 Debitors
+      each participant in group.participants
+        if participant.balance < 0
+          h3.h3 #{participant.user.name.first} #{participant.user.name.last}
+          ul
+            each transaction in transactions
+              if transaction.from._id == participant.user._id
+                - var amount = transaction.amount / 100
+                li &euro; #{amount} to #{transaction.to.name.first} #{transaction.to.name.last}
