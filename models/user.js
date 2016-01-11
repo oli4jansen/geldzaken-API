@@ -19,7 +19,7 @@ var UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        bcrypt: true
+//        bcrypt: true
     }
 });
 
@@ -27,6 +27,6 @@ UserSchema.virtual('name.full').get(function () {
     return this.name.first + ' ' + this.name.last;
 });
 
-UserSchema.plugin(require('mongoose-bcrypt'));
+//UserSchema.plugin(require('mongoose-bcrypt'));
 
 module.exports = mongoose.model('User', UserSchema);
