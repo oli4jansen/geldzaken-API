@@ -17,7 +17,7 @@ var groups = {
             }
         })
     },
-    getOne: function(req, res) {
+    get: function(req, res) {
         var id = req.params.id;
         Group.findOne({ '_id': id })
         .populate('payments.participants', '_id name')

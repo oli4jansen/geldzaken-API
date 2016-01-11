@@ -1,31 +1,36 @@
-var express = require('express')
-  , auth    = require('./auth.js')
-  , router  = express.Router();
-
-var user     = require('./users.js')
+var express  = require('express')
+  , config   = require('../config')
+  , auth     = require('./auth.js')
+  , user     = require('./users.js')
   , groups   = require('./groups.js')
-  , payments = require('./payments.js');
+  , payments = require('./payments.js')
+  , router   = express.Router();
 
-router.post('/login', auth.login);
-router.post('/signup', user.create);
+// Public routes
 
-router.get('/secret/users', user.getAll); // Should be deleted before release
-router.get('/secret/users/:id', user.getOne); // Only own account
-router.put('/secret/users/:id', user.update);
-router.delete('/secret/users/:id', user.delete);
+// Takes a username & password and possibly returns an access token
+router.post(config.publicPrefix + '/login', auth.login);
+// Takes user info and puts the user into the database
+router.post(config.publicPrefix + '/signup', user.create);
 
-router.get('/secret/groups', groups.getAll);
-router.get('/secret/groups/:id', groups.getOne);
-router.post('/secret/groups/', groups.create);
-router.put('/secret/groups/:id', groups.update);
-router.get('/secret/groups/:id/settle', groups.settle);
+// Private routes
 
-router.post('/secret/groups/:id/participants', groups.invite);
+router.get(config.privatePrefix + '/users/:id', user.get);
+router.put(config.privatePrefix + '/users/:id', user.update);
+router.delete(config.privatePrefix + '/users/:id', user.delete);
 
-router.post('/secret/groups/:group/payments', payments.create);
-router.put('/secret/groups/:group/payments/:id', payments.update);
-router.delete('/secret/groups/:group/payments/:id', payments.delete);
+router.get(config.privatePrefix + '/groups', groups.getAll);
+router.get(config.privatePrefix + '/groups/:id', groups.get);
+router.post(config.privatePrefix + '/groups/', groups.create);
+router.put(config.privatePrefix + '/groups/:id', groups.update);
+router.get(config.privatePrefix + '/groups/:id/settle', groups.settle);
 
-router.delete('/secret/groups', groups.delete);
+router.post(config.privatePrefix + '/groups/:id/participants', groups.invite);
+
+router.post(config.privatePrefix + '/groups/:group/payments', payments.create);
+router.put(config.privatePrefix + '/groups/:group/payments/:id', payments.update);
+router.delete(config.privatePrefix + '/groups/:group/payments/:id', payments.delete);
+
+router.delete(config.privatePrefix + '/groups', groups.delete);
 
 module.exports = router;

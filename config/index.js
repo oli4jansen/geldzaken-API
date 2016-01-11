@@ -1,5 +1,7 @@
 var config = {
   port: 8080,
+  publicPrefix: '',
+  privatePrefix: '/private',
   viewsDir: '/views',
   viewEngine: 'jade',
   // For all logger options, see morgan docs
