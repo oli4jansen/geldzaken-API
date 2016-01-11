@@ -46,13 +46,21 @@ var auth = {
                 callback(err, false)
             } else if (!user) {
                 callback("E-mail is niet bij ons bekend.", false);
-            } else if (user.password == password) {
-                callback(false, {
-                    name: user.name.full,
-                    email: user.email
-                });
             } else {
-                callback("Wachtwoord ongeldig", false);
+                console.log('Before verification.');
+                user.verifyPassword(password, function(err, valid) {
+                    console.log('After verification.');
+                    if (err) {
+                        callback("Wachtwoord kon niet op geldigheid gecontroleerd worden.", false)
+                    } else if (!valid) {
+                        callback("Wachtwoord ongeldig", false)
+                    } else {
+                        callback(false, {
+                            name: user.name.full,
+                            email: user.email
+                        });
+                    }
+                });
             }
         })
     },
