@@ -1,7 +1,6 @@
 var express  = require('express')
   , config   = require('../config')
-  , auth     = require('./auth.js')
-  , user     = require('./users.js')
+  , users    = require('./users.js')
   , groups   = require('./groups.js')
   , payments = require('./payments.js')
   , router   = express.Router();
@@ -9,15 +8,15 @@ var express  = require('express')
 // Public routes
 
 // Takes a username & password and possibly returns an access token
-router.post(config.publicPrefix + '/login', auth.login);
+router.post(config.publicPrefix + '/login', users.login);
 // Takes user info and puts the user into the database
-router.post(config.publicPrefix + '/signup', user.create);
+router.post(config.publicPrefix + '/signup', users.create);
 
 // Private routes
 
-router.get(config.privatePrefix + '/users/:id', user.get);
-router.put(config.privatePrefix + '/users/:id', user.update);
-router.delete(config.privatePrefix + '/users/:id', user.delete);
+router.get(config.privatePrefix + '/users/:id', users.get);
+router.put(config.privatePrefix + '/users/:id', users.update);
+router.delete(config.privatePrefix + '/users/:id', users.delete);
 
 router.get(config.privatePrefix + '/groups', groups.getAll);
 router.get(config.privatePrefix + '/groups/:id', groups.get);

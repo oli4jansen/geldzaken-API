@@ -5,7 +5,10 @@ var UserSchema = new mongoose.Schema({
         type: String,
     },
     name: {
-        first: String,
+        first: {
+            type: String,
+            required: true
+        },
         last: String
     },
     email: {
@@ -20,6 +23,10 @@ var UserSchema = new mongoose.Schema({
         type: String,
         required: true,
         bcrypt: true
+    },
+    bankaccount: {
+        type: String,
+        required: true
     }
 });
 
