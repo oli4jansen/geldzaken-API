@@ -1,16 +1,19 @@
 var Sequelize = require('sequelize');
 
-var sequelize = new Sequelize('d27nn3vddqmm78', 'ixviqsdrhxsvnk', 'BoVf3LfBg92Yb69vGKNOS1PWIT', {
-  host: 'ec2-54-195-252-202.eu-west-1.compute.amazonaws.com',
+var sequelize = new Sequelize('d42p21s21sleer', 'qeqqonrddbxfek', '3f8iUI7heiVVmXXFQWtJhpGVcf', {
+  host: 'ec2-54-247-170-228.eu-west-1.compute.amazonaws.com',
   port: '5432',
   dialect: 'postgres',
-
+  dialectOptions: {
+    ssl: true
+  },
+  logging: false,
   pool: {
     max: 5,
     min: 0,
     idle: 10000
   },
-  logging: false,
+  sync: { force: false },
 });
 
 var db = {};
@@ -32,13 +35,13 @@ db.Sequelize = Sequelize;
     db.membership.sync({ force: true }).then(function () {
       db.Payment.sync({ force: true }).then(function () {
         db.paymentParticipation.sync({ force: true });
-      })})})});//*/
+      })})})});//
 
 db.User.sync().then(function () {
   db.Group.sync().then(function () {
     db.membership.sync().then(function () {
       db.Payment.sync().then(function () {
         db.paymentParticipation.sync();
-      })})})});//
+      })})})});//*/
 
 module.exports = db;

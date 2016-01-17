@@ -1,6 +1,5 @@
 var express    = require('express')
   , path       = require('path')
-  , favicon    = require('serve-favicon')
   , logger     = require('morgan')
   , bodyParser = require('body-parser')
   , mailer     = require('express-mailer')
@@ -21,9 +20,6 @@ app.use(logger(config.logger));
 
 // Set the codyParser to JSON (because that's what we want to output)
 app.use(bodyParser.json());
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 
 // Set default headers for all requests and respond to all OPTIONS requests with 200
 app.all('/*', function(req, res, next) {

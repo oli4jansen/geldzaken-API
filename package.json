@@ -2,7 +2,8 @@
   "name": "Geldzaken",
   "version": "0.0.1",
   "scripts": {
-    "start": "supervisor ./bin/www"
+//    "start": "supervisor ./bin/www",
+    "start": "node ./bin/www"
   },
   "author": "Olivier Jansen",
   "dependencies": {
@@ -18,7 +19,6 @@
     "pg": "^4.4.3",
     "pg-hstore": "^2.3.2",
     "sequelize": "^3.17.1",
-    "serve-favicon": "~2.3.0",
     "underscore": "1.8.3"
   },
   "engines": {
