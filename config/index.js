@@ -18,7 +18,6 @@ var config = {
       pass: 'reivilonesnaj'
     }
   },
-  database: 'mongodb://localhost/geldzaken'
 };
 
 module.exports = config;

@@ -1,25 +1,33 @@
-/*var mongoose = require("mongoose");
+module.exports = function(sequelize, DataTypes) {
 
-var PaymentSchema = new mongoose.Schema({
-	group: {
-		type: mongoose.Schema.ObjectId,
-		required: true,
-		ref: "Group"
-	},
-    payer: {
-        type: String,
-        required: true,
-        ref: "User"
+  var Payment = sequelize.define('Payment', {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
+    description: {
+      type: DataTypes.STRING
     },
     amount: {
-    	type: Number,
-    	required: true,
-    },
-    participants: [{
-        type: String,
-        ref: "User"
-    }]
-});
+      type: DataTypes.NUMERIC(12,3),
+      defaultValue: 0.000
+    }
+  }, {
+    timestamps: true,
+    freezeTableName: true,
+    classMethods: {
+      associate: function (models) {
+        models.Payment.belongsToMany(models.User, {
+          through: models.paymentParticipation,
+          as: 'participants'
+        });
+        models.Payment.belongsTo(models.User, {
+          as: 'payedBy'
+        });
+      }
+    }
+  });
 
-module.exports = mongoose.model('Payment', PaymentSchema);
-*/
+  return Payment;
+}

@@ -1,39 +1,73 @@
-var mongoose = require("mongoose");
+var bcrypt = require('bcryptjs')
+  , iban   = require('iban')
+  , jwt    = require('jwt-simple');
 
-var UserSchema = new mongoose.Schema({
-    _id: {
-        type: String,
-    },
-    name: {
-        first: {
-            type: String,
-            required: true
-        },
-        last: String
-    },
+module.exports = function(sequelize, DataTypes) {
+
+  var User = sequelize.define('User', {
     email: {
-        type: String,
-        index: true,
-        trim: true,
-        unique: true,
-        required: 'Email address is required',
-        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+      type: DataTypes.STRING,
+      validate: {
+        isEmail: true
+      },
+      primaryKey: true
     },
     password: {
-        type: String,
-        required: true,
-        bcrypt: true
+      type: DataTypes.STRING
     },
-    bankaccount: {
-        type: String,
-        required: true
+    name: {
+      type: DataTypes.STRING
+    },
+    bankAccount: {
+      // TODO: check of het een IBAN is
+      type: DataTypes.STRING,
+      validate: {
+        isIBAN: function (value) {
+          if (!iban.isValid(value)) {
+            throw new Error('Bank account number had to be in IBAN format.')
+          }
+        }
+      }
     }
-});
+  }, {
+    timestamps: true,
+    freezeTableName: true,
+    instanceMethods: {
+      validPassword: function(password) {
+        return bcrypt.compareSync(password, this.password);
+      },
+      generateToken: function (key) {
+        var date  = new Date()
+          , token = jwt.encode({
+          exp: date.setDate(date.getDate() + 100),
+          key: key
+        }, require('../config/secret')());
+        return token;
+      }
+    },
+    setterMethods: {
+      password: function (password) {
+        var salt = bcrypt.genSaltSync(10);
+        this.setDataValue('password', bcrypt.hashSync(password, salt));
+      }
+    },
+    classMethods: {
+      associate: function (models) {
+        models.User.belongsToMany(models.Group, {
+          through: models.membership,
+          as: 'groups'
+        });
+        models.User.belongsToMany(models.Payment, {
+          through: models.paymentParticipation,
+          as: 'paymentParticipations'
+        });
+      }
+    },
+    indexes: [{
+        unique: true,
+        fields: ['email']
+    }]
+  });
 
-UserSchema.virtual('name.full').get(function () {
-    return this.name.first + ' ' + this.name.last;
-});
-
-UserSchema.plugin(require('mongoose-bcrypt'));
-
-module.exports = mongoose.model('User', UserSchema);
+  return User;
+}

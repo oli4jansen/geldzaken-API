@@ -1,4 +1,4 @@
-var User  = require('../models/user.js')
+var Models  = require('../models')
   , auth  = require('../middlewares/auth.js')
   , users = {};
 
@@ -8,43 +8,63 @@ users.get = function(req, res) {
 };
 
 users.create = function(req, res) {
-  var user = new User({
-    _id: req.body.email,
-    name: {
-      first: req.body.name.first,
-      last: req.body.name.last
-    },
+  // TODO: check if email is valid
+
+  Models.User
+  .create({
     email: req.body.email,
     password: req.body.password,
-    bankaccount: req.body.bankaccount
-  });
-
-  user.save(function (err, user) {
-    if (err) {
-      res.status(400);
-      res.json(err);
-    } else {
-      res.json(user);
-    }
-  });
+    name: req.body.name,
+    bankAccount: req.body.bankAccount
+  })
+  .then(function(user) {
+    res.json(user);
+  }).catch(function(err) {
+    // If this happens, the model validation probably failed.
+    res.status(400);
+    console.log(err);
+    res.json(err.message);
+  })
 };
 
 users.login = function (req, res) {
-  res.json(req.user.token);
+  // In routes, this controller requires auth.validateRequestWithPassword
+  res.json(req.token);
 };
 
 users.update = function(req, res) {
-  var id = req.params.id;
-  res.json(false);
+  req.user
+  .update(req.body, {
+    fields: ['name', 'bankAccount', 'password']
+  })
+  .then(function (result) {
+    res.json(result);
+  })
+  .catch(function (err) {
+    // If this happens, the model validation probably failed.
+    res.status(400);
+    res.json(err.message);
+  });
 };
 
 users.delete = function(req, res) {
-  /* Delete account maar pas als hij/zij uit alle lijsten is */
-  var id = req.params.id;
-  User.remove({}, function(err) {
-      console.log('collection removed')
+  req.user
+  .getGroups()
+  .then(function (groups) {
+    if (groups.length == 0) {
+      return req.user.destroy();
+    } else {
+      throw new Error('You need to leave all groups before you can delete your account.');
+    }
+  })
+  .then(function (result) {
+    if (!result) throw new Error(result);
+    res.json(result);
+  })
+  .catch(function (err) {
+    res.status(401);
+    res.json(err.message);
   });
-  res.json(false);
 };
 
 module.exports = users;

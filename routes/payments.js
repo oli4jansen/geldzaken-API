@@ -1,68 +1,85 @@
-var _ = require('underscore');
-//var Payment = require('../models/payment.js');
-var Group   = require('../models/group.js');
+var _       = require('underscore')
+  , Models  = require('../models')
+  , Promise = require('bluebird');
 
 var payments = {};
 
 payments.create = function(req, res) {
-  var payment = {
-           payer: req.body.payer        || req.user._id,
-          amount: req.body.amount       || 0,
-    participants: req.body.participants || [],
-     description: req.body.description  || ''
-  };
+  var payedBy      = req.body.payedBy      || req.user.email
+    , participants = req.body.participants || {}
 
-  // Haal de groep op waarin we een payment willen plaatsen
-  Group.findOne({ '_id': req.params.group }, function (err, group) {
-    if (err) {
-      console.log(err);
-      res.status(500);
-    } else {
-      // Lijst met alle id's van de leden van de groep
-      var groupParticipants = _.map(group.participants, function (p) {
-        return p.user
-      });
+  var participants = _.indexBy(participants, 'email');
 
-      // Boolean: geldt voor elke deelnemer van de payment dat hij in de lijst
-      // met groep deelnemers zit? Ook wel: zitten alle deelnemers i/d groep?
-      var participantsInGroup = _.every(payment.participants, function (p) {
-        return _.contains(groupParticipants, p);
-      });
+  // THIS SHOULD BE A TRANSACTION
 
-      // Zit degene die de betaling doet ook in de groep?
-      var payerInGroup = _.contains(groupParticipants, payment.payer);
-
-      // Als dit allemaal waar is..
-      if(payerInGroup && participantsInGroup && payment.participants.length) {
-        var share = parseFloat(payment.amount) / payment.participants.length;
-        // Ga alle leden van de groep langs als p
-        _.each(group.participants, function (p) {
-          // Check of p in de deelnemers van de betaling zit
-          if (_.contains(payment.participants, p.user))
-            // Zo ja, verlaag de balans
-            p.balance -= share;
-          if (payment.payer == p.user)
-            p.balance += parseFloat(payment.amount);
-        });
-
-        group.payments.push(payment);
-
-        console.log('Payment gepusht');
-
-        group.save(function (err, group) {
-          if (err) {
-            res.status(400);
-            res.json(err);
-          } else {
-            res.status(200);
-            res.json(group);
-          }
-        });
-      } else {
-        res.status(400);
-        res.json("Payer or participants are not in group.");
-      }
+  // Zoek de groep
+  Models.Group
+  .findById(req.params.group)
+  .bind({})
+  .then(function (group) {
+    if (!group) throw new Error('This group does not exist.');
+    this.group = group;
+    // Groep is gevonden, zoek de betaler
+    return Models.User.findById(payedBy);
+  })
+  .then(function (user) {
+    if (!user) throw new Error('Payed by ID is invalid.');
+    this.user = user;
+    // Betaler is gevonden, check of ie lid is van de groep
+    return this.group.hasMember(user);
+  })
+  .then(function (isMember) {
+    if (!isMember) throw new Error('You are not a member of this group.');
+    // Betaler is lid, zoek nu de delers vd betaling
+    return Models.User
+    .findAll({
+      where: { email: { $in: _.keys(participants) } }
+    });
+  })
+  .then(function (users) {
+    if (!users) throw new Error('Could not find participants');
+    if (users.length !== _.keys(participants).length) {
+      throw new Error('Not all participants are known.');
     }
+    this.users = users;
+    // Delers gevonden, check of ze lid zijn van de groep
+    return this.group.hasMembers(this.users);
+  })
+  .then(function (areMember) {
+    if (!areMember) throw new Error('Participants are not all members of group.');
+    return Models.Payment
+    .create({
+      amount:      req.body.amount      || 0,
+      description: req.body.description || ''
+    });
+  })
+  .then(function (payment) {
+    if (!payment) throw new Error('Could not create payment');
+    this.payment = payment;
+    console.log(payment);
+    return this.payment.setPayedBy(this.user);
+  })
+  .then(function (result) {
+    if (!result) throw new Error('Can\'t add payment to payedBy.');
+
+    var promises = [];
+    for (var i = 0; i < this.users.length; i++) {
+      promises.push(this.payment.addParticipant(this.users[i], {
+        weight: participants[this.users[i].email].weight
+      }));
+    }
+    return Promise.all(promises);
+  })
+  .then(function (result) {
+    if (!result) throw new Error('Could not add participants to payment.');
+    return this.group.addPayment(this.payment);
+  })
+  .then(function (result) {
+    res.json(result);
+  })
+  .catch(function (err) {
+    res.status(500);
+    res.json(err.message);
   })
 };
 
@@ -71,9 +88,6 @@ payments.update = function (req, res) {
 };
 
 payments.delete = function (req, res) {
-  Payment.remove({}, function(err) {
-    console.log('collection removed')
-  });
   res.json(false);
 };
 

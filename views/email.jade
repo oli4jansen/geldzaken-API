@@ -5,20 +5,20 @@ html
     title Checkout of #{group.name}
     body
       h2.h2 Creditors
-      each participant in group.participants
-        if participant.balance > 0
-          h3.h3 #{participant.user.name.first} #{participant.user.name.last}
+      each member in members
+        if balances[member.email] > 0
+          h3.h3 #{member.name}
           ul
             each transaction in transactions
-              if transaction.to._id == participant.user._id
-                - var amount = transaction.amount / 100
-                li &euro; #{amount} from #{transaction.from.name.first} #{transaction.from.name.last}
+              if transaction.to.email == member.email
+                - var amount = transaction.amount
+                li &euro; #{amount} from #{transaction.from.name}
       h2.h2 Debitors
-      each participant in group.participants
-        if participant.balance < 0
-          h3.h3 #{participant.user.name.first} #{participant.user.name.last}
+      each member in members
+        if balances[member.email] < 0
+          h3.h3 #{member.name}
           ul
             each transaction in transactions
-              if transaction.from._id == participant.user._id
-                - var amount = transaction.amount / 100
-                li &euro; #{amount} to #{transaction.to.name.first} #{transaction.to.name.last}
+              if transaction.from.email == member.email
+                - var amount = transaction.amount
+                li &euro; #{amount} to #{transaction.to.name}
