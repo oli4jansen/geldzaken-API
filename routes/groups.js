@@ -253,7 +253,7 @@ groups.settle = function (req, res) {
       return member.email;
     })
 
-    res.mailer.send('email', {
+    res.mailer.send('settledGroup', {
       to: adresses,
       subject: 'Afrekening van ' + this.group.name,
       group: this.group,

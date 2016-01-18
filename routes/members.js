@@ -53,8 +53,7 @@ members.addMember = function (req, res) {
       }
     })
     .then(function (result) {
-
-      res.mailer.send('email', {
+      res.mailer.send('addToGroup', {
         to: email,
         subject: 'Toegevoegd aan groep ' + this.group.name,
         group: this.group
