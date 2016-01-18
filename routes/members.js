@@ -64,6 +64,7 @@ members.addMember = function (req, res) {
     })
     .catch(function (err) {
       res.status(400);
+      console.log(err.stack);
       res.json(err.message);
     });
   }
