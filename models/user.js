@@ -1,6 +1,7 @@
-var bcrypt = require('bcryptjs')
-  , iban   = require('iban')
-  , jwt    = require('jwt-simple');
+var bcrypt  = require('bcryptjs')
+  , iban    = require('iban')
+  , jwt     = require('jwt-simple')
+  , Promise = require('bluebird');
 
 module.exports = function(sequelize, DataTypes) {
 
@@ -15,16 +16,18 @@ module.exports = function(sequelize, DataTypes) {
     password: {
       type: DataTypes.STRING
     },
+    passwordResetToken: {
+      type: DataTypes.STRING
+    },
     name: {
       type: DataTypes.STRING
     },
     bankAccount: {
-      // TODO: check of het een IBAN is
       type: DataTypes.STRING,
       validate: {
         isIBAN: function (value) {
           if (!iban.isValid(value)) {
-            throw new Error('Bank account number had to be in IBAN format.')
+            throw new Error('Je bankrekeningnummer moet in IBAN formaat zijn.')
           }
         }
       }
@@ -34,7 +37,13 @@ module.exports = function(sequelize, DataTypes) {
     freezeTableName: true,
     instanceMethods: {
       validPassword: function(password) {
-        return bcrypt.compareSync(password, this.password);
+        var instance = this;
+        return new Promise(function(resolve, reject){
+          bcrypt.compare(password, instance.password, function(err, data){
+            if (err) reject(err);
+            else     resolve(data);
+          });
+        });
       },
       generateToken: function (key) {
         var date  = new Date()
@@ -43,12 +52,6 @@ module.exports = function(sequelize, DataTypes) {
           key: key
         }, require('../config/secret')());
         return token;
-      }
-    },
-    setterMethods: {
-      password: function (password) {
-        var salt = bcrypt.genSaltSync(10);
-        this.setDataValue('password', bcrypt.hashSync(password, salt));
       }
     },
     classMethods: {
@@ -68,6 +71,37 @@ module.exports = function(sequelize, DataTypes) {
         fields: ['email']
     }]
   });
+
+  var passwordResetTokenHook = function (instance, options, next) {
+    if (!instance.changed('passwordResetToken'))
+      return next(null, instance);
+
+    require('crypto').randomBytes(48, function(err, buf) {
+      if(err) return next(err);
+      instance.passwordResetToken = buf.toString('hex');
+      next(null, instance);
+    });
+  };
+  User.beforeUpdate(passwordResetTokenHook);
+
+  var hashPasswordHook = function (instance, options, next) {
+    if (!instance.changed('password')) {
+      console.log('password has not changed');
+      return next(null, instance);
+    }
+
+    bcrypt.genSalt(10, function (err, salt){
+      if(err) return next(err);
+
+      bcrypt.hash(instance.password, salt, function (err, hash){
+        if(err) return next(err);
+        instance.password = hash;
+        next(null, instance);
+      });
+    });
+  };
+  User.beforeCreate(hashPasswordHook);
+  User.beforeUpdate(hashPasswordHook);
 
   return User;
 }

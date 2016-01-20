@@ -11,16 +11,21 @@ var auth = {
 
     Models.User
     .findById(email)
+    .bind({})
     .then(function(user) {
       if (!user) {
         throw new Error("Gebruiker is niet bij ons bekend.");
-      } else if (!user.validPassword(password)) {
-        throw new Error("Wachtwoord ongeldig.");
-      } else {
-        req.token = user.generateToken(email);
-        req.user  = user;
-        next();
       }
+      this.user = user;
+      return user.validPassword(password);
+    })
+    .then(function (passwordValid) {
+      if (!passwordValid) {
+        throw new Error("Wachtwoord ongeldig.");
+      }
+      req.token = this.user.generateToken(email);
+      req.user  = this.user;
+      next();
     }).catch(function (err) {
       res.status(401);
       res.json(err.message);

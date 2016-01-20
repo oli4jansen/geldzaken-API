@@ -12,7 +12,7 @@ var sequelize = new Sequelize('d42p21s21sleer', 'qeqqonrddbxfek', '3f8iUI7heiVVm
     max: 5,
     min: 0,
     idle: 10000
-  }
+  },
 });
 
 var db = {};
@@ -34,13 +34,13 @@ db.Sequelize = Sequelize;
     db.membership.sync({ force: true }).then(function () {
       db.Payment.sync({ force: true }).then(function () {
         db.paymentParticipation.sync({ force: true });
-      })})})});//*/
+      })})})});//
 
-db.User.sync().then(function () {
+/*db.User.sync().then(function () {
   db.Group.sync().then(function () {
     db.membership.sync().then(function () {
       db.Payment.sync().then(function () {
         db.paymentParticipation.sync();
-      })})})});
+      })})})});*/
 
 module.exports = db;

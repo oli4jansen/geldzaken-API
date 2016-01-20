@@ -12,6 +12,8 @@ var express  = require('express')
 router.post(config.publicPrefix + '/login', users.login);
 // Takes user info and puts the user into the database
 router.post(config.publicPrefix + '/signup', users.create);
+router.put(config.publicPrefix  + '/users/:id/password', users.requestPasswordReset);
+router.post(config.publicPrefix  + '/users/:id/password', users.passwordReset);
 
 // Private routes
 

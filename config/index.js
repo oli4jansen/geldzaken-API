@@ -1,5 +1,6 @@
 var config = {
   port: 8080,
+  clientUrl: 'http://oli4jansen.github.io/geldzaken-client/#',
   publicPrefix: '',
   privatePrefix: '/private',
   viewsDir: '/views',
