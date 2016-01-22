@@ -157,9 +157,20 @@ members.removeMember = function (req, res) {
     if (!result) {
       throw new Error("An unknown error occured.");
     } else {
-      // Check if this user is the last member of the group. If so: delete the group.
-      res.json(result);
+      this.result = result
+      return this.group.getMembers();
     }
+  })
+  .then(function (members) {
+    if (members.length == 0) {
+      return this.group.destroy();
+    } else {
+      res.json(this.result);
+    }
+  })
+  .then(function (result) {
+    if (!result) throw new Error('Kon groep niet verwijderen..')
+    res.json(this.result);
   })
   .catch(function (err) {
     res.status(400);
