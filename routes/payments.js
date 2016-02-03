@@ -168,7 +168,35 @@ payments.update = function (req, res) {
 };
 
 payments.delete = function (req, res) {
-  res.json(false);
+  Models.Group
+  .findById(req.params.group)
+  .bind({})
+  .then(function (group) {
+    if (!group) throw new Error('Deze groep bestaat niet.');
+    this.group = group;
+    return Models.Payment.findById(req.params.id);
+  })
+  .then(function (payment) {
+    if (!payment) throw new Error('Deze betaling bestaat niet.');
+    this.payment = payment;
+    return this.group.hasPayment(this.payment);
+  })
+  .then(function (hasPayment) {
+    if (!hasPayment) throw new Error('Deze betaling hoort niet bij deze groep.');
+    return this.group.hasMember(req.user);
+  })
+  .then(function (isMember) {
+    if (!isMember) throw new Error('Je bent geen lid van deze groep.');
+    return this.payment.destroy();
+  })
+  .then(function (deleted) {
+    if (!deleted) throw new Error('Kon betaling niet verwijderen.');
+    res.json(this.payment);
+  })
+  .catch(function (err) {
+    res.status(500);
+    res.json(err.message);
+  })
 };
 
 module.exports = payments;
