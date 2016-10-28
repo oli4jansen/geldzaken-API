@@ -34,13 +34,13 @@ db.Sequelize = Sequelize;
     db.membership.sync({ force: true }).then(function () {
       db.Payment.sync({ force: true }).then(function () {
         db.paymentParticipation.sync({ force: true });
-      })})})});//
+      })})})});*/
 
-/*db.User.sync().then(function () {
+db.User.sync().then(function () {
   db.Group.sync().then(function () {
     db.membership.sync().then(function () {
       db.Payment.sync().then(function () {
         db.paymentParticipation.sync();
-      })})})});*/
+      })})})});
 
 module.exports = db;
